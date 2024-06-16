@@ -39,8 +39,8 @@ export default function Home() {
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {images.map((image, index) => (
-              <div key={index} className="bg-gray-200 p-4 rounded-md">
-                <img src={image} alt={`Image ${index}`} className="w-full h-auto rounded-md" />
+              <div key={index} className="bg-gray-200 p-4 rounded-md h-fit">
+                <img src={image} alt={`Image ${index}`} className="w-full h-fit rounded-md" />
               </div>
             ))}
           </div>
