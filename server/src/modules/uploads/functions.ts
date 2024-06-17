@@ -52,9 +52,20 @@ export async function getImages(_req: Request, res: Response) {
       return [".jpg", ".jpeg", ".png", ".gif"].includes(fileExtension);
     });
 
+    if (imageFiles.length === 0) {
+      return res.status(200).json({
+        error: false,
+        message: "No images were uploaded",
+      });
+    }
+
     const imageUrls = imageFiles.map((file) => `/uploads/${file}`);
 
-    res.status(200).json(imageUrls);
+    res.status(200).json({
+      error: false,
+      message: "Images uploaded",
+      data: imageUrls,
+    });
   } catch (error) {
     serverError({ error, res });
   }

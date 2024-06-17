@@ -8,11 +8,18 @@ export default function Home() {
     const fetchImages = async () => {
       try {
         const response = await fetch("http://localhost:5000/api/uploads");
-        if (response.ok) {
-          const data = await response.json();
-          setImages(data);
-        } else {
+
+        const formattedResponse = await response.json();
+
+        if (formattedResponse.error) {
           console.error("Failed to fetch images");
+        } else {
+          const imagesUrls = formattedResponse.data.map((url: string) => {
+            return "http://localhost:5000" + url;
+          });
+
+          console.log(imagesUrls);
+          setImages(imagesUrls);
         }
       } catch (error) {
         console.error("Error fetching images:", error);
