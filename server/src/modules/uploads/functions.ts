@@ -1,8 +1,12 @@
 import { Request, Response } from "express";
-import { serverError } from "../../utils/functions";
 import { uploadsDir } from "./routes";
 import fs from "fs";
 import path from "path";
+import sharp from "sharp";
+import crypt from "node:crypto";
+import { serverError } from "../../utils/functions";
+
+const defaultImageWidthSize = 448;
 
 export async function uploadImage(req: Request, res: Response) {
   try {
@@ -13,17 +17,28 @@ export async function uploadImage(req: Request, res: Response) {
       });
     }
 
-    const uploadedFiles = (req.files as Express.Multer.File[]).map((file) => ({
-      filename: file.filename,
-      path: file.path,
-    }));
+    const uploadedFiles = (req.files as Express.Multer.File[]).map(async (file) => {
+      const filename = `${crypt.randomUUID()}-${file.originalname}`;
+      const finalFilePath = path.join(uploadsDir, filename);
+
+      // Resize the image using sharp
+      await sharp(file.buffer).resize({ width: defaultImageWidthSize }).toFile(finalFilePath);
+
+      return {
+        filename,
+        path: finalFilePath,
+      };
+    });
+
+    const resolvedFiles = await Promise.all(uploadedFiles);
 
     res.status(200).json({
       error: false,
-      message: "Files uploaded successfully",
-      files: uploadedFiles,
+      message: "Files uploaded and resized successfully",
+      files: resolvedFiles,
     });
   } catch (error) {
+    console.error("Error uploading image:", error);
     serverError({ error, res });
   }
 }
@@ -37,7 +52,7 @@ export async function getImages(_req: Request, res: Response) {
       return [".jpg", ".jpeg", ".png", ".gif"].includes(fileExtension);
     });
 
-    const imageUrls = imageFiles.map((file) => `http://localhost:5000/uploads/${file}`);
+    const imageUrls = imageFiles.map((file) => `/uploads/${file}`);
 
     res.status(200).json(imageUrls);
   } catch (error) {
